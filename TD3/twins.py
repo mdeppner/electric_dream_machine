@@ -35,7 +35,7 @@ if __name__ == '__main__':
     client = Client(username='Electric Dream Machine',
                     password='bioP9heTei',
                     controller=controller,
-                    output_path='tournament/logs/twins', # rollout buffer with finished games will be saved in here
+                    output_path='tournament_logs/twins', # rollout buffer with finished games will be saved in here
                     interactive=False,
                     op='start_queuing',
                     # server_addr='localhost',
