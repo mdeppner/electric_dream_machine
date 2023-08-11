@@ -5,6 +5,7 @@ import random
 import time
 import pickle
 from memory import *
+import numpy as np
 
 
 
