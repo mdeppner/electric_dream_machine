@@ -17,18 +17,18 @@ def main():
     argParser.add_argument("-eps_min", help="minimum epsilon", default=0.05, type=float)
     argParser.add_argument("-eps_optimizer", help="epsilon optimizer", default=0.000001, type=int)
     argParser.add_argument("-reward_batch_norm", help="reward batch normalization", default=True, type=bool)
-    argParser.add_argument("-gamma", help="discount factor", default=0.95, type=float)
-    argParser.add_argument("-lr_actor", help="learning rate for actor/policy", default=0.0001, type=float)
-    argParser.add_argument("-lr_critic", help="learning rate for critic", default=0.0002, type=float)
+    argParser.add_argument("-gamma", help="discount factor", default=0.995, type=float)
+    argParser.add_argument("-lr_actor", help="learning rate for actor/policy", default=0.0005, type=float)
+    argParser.add_argument("-lr_critic", help="learning rate for critic", default=0.001, type=float)
     argParser.add_argument("-train_iter", help="number of training batches per episode", default=32, type=int)
     argParser.add_argument("-tau", help="soft update factor for target networks", default=0.005, type=float)
     argParser.add_argument("-batch_size", help="batch size", default=128, type=int)
-    argParser.add_argument("-hard_updates_every", help="update target networks every n steps", default=30, type=int)
-    argParser.add_argument("-hidden_sizes_actor", help="hidden size of actor", default=[256, 256], type=list)
+    argParser.add_argument("-hard_updates_every", help="update target networks every n steps", default=5, type=int)
+    argParser.add_argument("-hidden_sizes_actor", help="hidden size of actor", default=[256, 128], type=list)
     argParser.add_argument("-hidden_sizes_critic", help="hidden size of critic", default=[256, 256, 128], type=list)
     argParser.add_argument("-max_episodes", help="number of episodes", default=5025, type=int)
     argParser.add_argument("-max_steps", help="number of steps per episode", default=500, type=int)
-    argParser.add_argument("-seed", help="random seed", default=None, type=int)
+    argParser.add_argument("-seed", help="random seed", default=20, type=int)
     argParser.add_argument("-mode", help="Mode for training: attack | defense | normal", default='normal')
     argParser.add_argument("-noise", help="Noise for Actions", default=0.2, type=float)
     argParser.add_argument("-render", help="Render the environment", default=False, type=bool)
@@ -40,9 +40,9 @@ def main():
     ############## Hyperparameters ##############
 
 
-    env_name = "LunarLander-v2"
+    env_name = "LunarLanderContinuous-v2"
     #env = gym.make(env_name, continuous = True)
-    #env_name = "Hockey"
+    env_name = "Hockey"
 
 
     if opts.mode == 'normal':
@@ -55,9 +55,9 @@ def main():
         raise ValueError('Unknown training mode. See --help')
 
 
-    #opponent = h_env.BasicOpponent(weak=True)
-    #env = h_env.HockeyEnv(mode=mode)
-    env = gym.make(env_name,continuous = True)
+    opponent = h_env.BasicOpponent(weak=True)
+    env = h_env.HockeyEnv(mode=mode)
+    #env = gym.make(env_name,continuous = True)
 
     log_interval = 10           # print avg reward in the interval
     max_episodes = opts.max_episodes         # max training episodes
@@ -96,6 +96,7 @@ def main():
 
     d4pg_agent = D4PGAgent(env.observation_space,
                            env.action_space,
+                           env_name,
                            eps = eps,
                            eps_decay = eps_decay,
                            eps_min = eps_min,
@@ -110,7 +111,7 @@ def main():
                            discount = gamma,
                            tau = tau)
 
-    #load_path = f"./results_final4/D4PG_Hockey_30025-eps0.99-t32-la0.0001-lc0.0002-s914-model.pth"
+    #load_path = f"./lunar_lander/D4PG_LunarLander-v2_1500-eps0.99-t32-la0.0001-lc0.0002-s886-model.pth"
     #saved_model = torch.load(load_path)
     # print("Configs of model: ", saved_model[4])
     #d4pg_agent.restore_state(saved_model)
@@ -127,13 +128,13 @@ def main():
             save_model("D4PG", episode)
 
     def save_statistics(path):
-        with open(f"./lunar_lander/{path}/d4pg_{env_name}-eps{eps}-t{train_iter}-la{lr_actor}-lc{lr_critic}-s{random_seed}-stat.pkl", 'wb') as f:
+        with open(f"./results/{path}/d4pg_{env_name}-eps{eps}-t{train_iter}-la{lr_actor}-lc{lr_critic}-s{random_seed}-statx.pkl", 'wb') as f:
             pickle.dump({"rewards" : rewards, "lengths": lengths, "eps": eps, "train": train_iter,
                          "lr_actor": lr_actor, "lr_critic": lr_critic, "hard_updates_every": opts.hard_updates_every, "losses": losses}, f)
 
     def save_model(path, episode):
         torch.save(d4pg_agent.state(),
-                   f'./lunar_lander/{path}_{env_name}_{episode}-eps{eps}-t{train_iter}-la{lr_actor}-lc{lr_critic}-s{random_seed}-model.pth')
+                   f'./results/{path}_{env_name}_{episode}-eps{eps}-t{train_iter}-la{lr_actor}-lc{lr_critic}-s{random_seed}-modelx.pth')
 
     def train_agent_hockey():
         # Lists to store episode statistics
@@ -183,8 +184,8 @@ def main():
                 observation_new, reward, done, truncated, info = env.step(action_step)
 
                 # Update the agent's "touched" state based on the environment information
+                second_touch = max(second_touch, touched)
                 touched = max(touched, info['reward_touch_puck'])
-                second_touch = max(second_touch, info['reward_touch_puck'])
 
                 #if episode > 2000 and episode % 10 == 0:
                     #env.render()
@@ -198,10 +199,11 @@ def main():
                 not_touched = 1 - touched
 
                 custom_rew = custom_reward((observation, action, reward, observation_new, done))[2]
-                current_reward = 20 * custom_rew - not_touched * 0.1 + touched * 0.1 + second_touch * 0.1
+                current_reward = 6 * custom_rew - not_touched * 0.1 + touched * 0.1 + second_touch * 0.1
 
-                # Reset second touch variable each step
                 second_touch = 0
+
+                #if episode > 50 and episode % 10 == 0: print("current_reward", current_reward)
 
                 # Update the total reward obtained in this episode
                 total_reward += current_reward
@@ -311,8 +313,8 @@ def main():
             # save every 500 episodes
             if episode % 500 == 0:
                 print("########## Saving a checkpoint... ##########")
-                save_model("D4PG")
-                create_statistics()
+                save_model("D4PG", episode)
+                create_statistics(episode)
 
             # logging
             if episode % log_interval == 0:
@@ -320,7 +322,7 @@ def main():
                 avg_length = int(np.mean(lengths[-log_interval:]))
 
                 print('Episode {} \t avg length: {} \t reward: {}'.format(episode, avg_length, avg_reward))
-        create_statistics()
+        create_statistics(episode)
 
         return d4pg_agent
 
@@ -369,8 +371,8 @@ def main():
         return num_wins, num_losses
 
     # Train the D4PG agent
-    #d4pg_agent_trained = train_agent_hockey()
-    d4pg_agent_trained = train_agent_lunar()
+    d4pg_agent_trained = train_agent_hockey()
+    #d4pg_agent_trained = train_agent_lunar()
 
     # Evaluate the trained agent (you may add code here to perform specific evaluation tasks)
     eval_episodes = 1000

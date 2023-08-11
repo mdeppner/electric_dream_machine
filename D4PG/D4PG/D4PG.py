@@ -61,7 +61,7 @@ class D4PGAgent(object):
     """
     Agent implementing Q-learning with NN function approximation.
     """
-    def __init__(self, observation_space, action_space, **userconfig):
+    def __init__(self, observation_space, action_space, env_name, **userconfig):
 
         if not isinstance(observation_space, spaces.box.Box):
             raise UnsupportedSpace('Observation space {} incompatible ' \
@@ -71,6 +71,7 @@ class D4PGAgent(object):
                                    ' (Require Box)'.format(action_space, self))
 
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+        self.env_name = env_name
 
         self._config = {
             "tau": 0.005,  # for soft update of target parameters
@@ -101,8 +102,10 @@ class D4PGAgent(object):
         self._observation_space = observation_space
         self._obs_dim = self._observation_space.shape[0]
         self._action_space = action_space
-        #self._action_n = int(action_space.shape[0]/2)
-        self._action_n = int(action_space.shape[0])
+        if env_name == "Hockey":
+            self._action_n = int(action_space.shape[0]/2)
+        else:
+            self._action_n = int(action_space.shape[0])
         self.action_noise = OUNoise((self._action_n))
 
         #self.buffer = mem.Memory(max_size=self._config["buffer_size"])
@@ -204,8 +207,10 @@ class D4PGAgent(object):
                 #action += self.eps_ * self.action_noise()   # action in -1 to 1 (+ noise)
                 action += self._gauss_noise(self._action_n)# if np.random.rand() < self._config["noise"] else 0
             else:
-                #action = self._action_space.sample()[:4]
-                action = self._action_space.sample()
+                if self.env_name == "Hockey":
+                    action = self._action_space.sample()[:4]
+                else:
+                    action = self._action_space.sample()
 
         else:
             self.actor.eval()
