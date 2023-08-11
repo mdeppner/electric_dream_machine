@@ -13,7 +13,7 @@ class TwinsOpponent(BasicOpponent, RemoteControllerInterface):
         BasicOpponent.__init__(self, weak=weak, keep_mode=keep_mode)
         RemoteControllerInterface.__init__(self, identifier='TD3')
 
-        self.policy = torch.load("./models/Hockey-v0_9000-eps0.1-t32-l0.001-sNone-tau0.005.pth")
+        self.policy = torch.load("./models/policy_networks/tournament_model_6000.pth")
         self.policy.eval()
     def remote_act(self,
             obs : np.ndarray,
