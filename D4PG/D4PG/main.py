@@ -30,7 +30,7 @@ def main():
     argParser.add_argument("-max_episodes", help="number of episodes", default=5025, type=int)
     argParser.add_argument("-max_steps", help="number of steps per episode", default=500, type=int)
     argParser.add_argument("-seed", help="random seed", default=20, type=int)
-    argParser.add_argument("-mode", help="Mode for training: attack | defense | normal", default='normal')
+    argParser.add_argument("-mode", help="Mode for training: attack or defense or normal", default='normal')
     argParser.add_argument("-noise", help="Noise for Actions", default=0.2, type=float)
     argParser.add_argument("-render", help="Render the environment", default=False, type=bool)
     argParser.add_argument("-batch_norm", help="Batch normalization", default=False, type=bool)
