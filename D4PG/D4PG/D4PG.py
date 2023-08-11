@@ -203,8 +203,6 @@ class D4PGAgent(object):
                     action = self.actor.predict(observation).detach().cpu().data.numpy()
                 self.actor.train()
 
-                #action = self._action_space.low + (action + 1.0) / 2.0 * (self._action_space.high - self._action_space.low)
-                #action += self.eps_ * self.action_noise()   # action in -1 to 1 (+ noise)
                 action += self._gauss_noise(self._action_n)# if np.random.rand() < self._config["noise"] else 0
             else:
                 if self.env_name == "Hockey":
@@ -337,31 +335,6 @@ class D4PGAgent(object):
         atoms = self.atoms
         gamma = self._config['discount']
         rollout = self._config["rollout"]  # N-Step bootstrapping for Temporal Difference Update Calculations
-
-        # entropy_tau = 0.03
-        # alpha = 0.9
-        # lo = -1
-        # entropy_coeff = 0.001
-        # N = 32
-        #
-        # print("Probs Target shape: ", probs_target.shape)
-        # q_t_n = probs_target
-        # print("Q_t_n shape: ", q_t_n.shape)
-        # logsum = torch.logsumexp(q_t_n / entropy_tau, dim=1).unsqueeze(-1)
-        # print("Logsum shape: ", logsum.shape)
-        # tau_log_pi_next = (q_t_n - entropy_tau * logsum)
-        # print("Tau Log Pi Next shape: ", tau_log_pi_next.shape)
-        # pi_target = F.softmax(tau_log_pi_next, dim=1)
-        # print("Pi Target shape: ", pi_target.shape)
-        # Q_target = (gamma**rollout * (pi_target * (probs_target-tau_log_pi_next)*(1 - dones)))
-        # print("Q Target shape: ", Q_target.shape)
-        # q_k_target = self.critic_target.Q_value(states, actions)
-        # print("Q_k_target shape: ", q_k_target.shape)
-        # tau_log_pik = q_k_target - entropy_tau * torch.logsumexp(q_k_target/entropy_tau, 0)
-        # print("Tau Log Pik shape: ", tau_log_pik.shape)
-        # munchausen_reward = (rewards + alpha*torch.clamp(tau_log_pik, min=lo, max=0))
-        # print("Munchausen Reward shape: ", munchausen_reward.shape)
-        # Q_targets = munchausen_reward + Q_target
 
         # Rewards were stored with 0->(N-1) summed, take Reward and add it to
         # the discounted expected reward at N (ROLLOUT) timesteps

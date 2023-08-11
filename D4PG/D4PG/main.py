@@ -203,8 +203,6 @@ def main():
 
                 second_touch = 0
 
-                #if episode > 50 and episode % 10 == 0: print("current_reward", current_reward)
-
                 # Update the total reward obtained in this episode
                 total_reward += current_reward
 

@@ -178,7 +178,7 @@ def main():
     for t in time_intervals:
 
         # Load pretrained agent
-        load_path = f"./results_30h_rewardbatchnorm/D4PG_Hockey_{t}-eps0.99-t32-la0.0001-lc0.0002-s353-model.pth"
+        load_path = "paste path to trained model here"
         saved_model = torch.load(load_path)
         d4pg_agent.restore_state(saved_model)
         print("restored agent with t = {}".format(t))
@@ -189,7 +189,7 @@ def main():
         np_results.append([sum(num_wins.values()), sum(num_losses.values()), eval_episodes - sum(num_wins.values()) - sum(num_losses.values())])
         print("Won stats: {} \t Lost stats: {} \t Draws: {}".format(sum(num_wins.values()), sum(num_losses.values()), eval_episodes - sum(num_wins.values()) - sum(num_losses.values())))
 
-    np.save("win_loss_stats_rewnorm.npy", np.array(np_results))
+    np.save("win_loss_stats.npy", np.array(np_results))
 
 if __name__ == '__main__':
     main()

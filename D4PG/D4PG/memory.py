@@ -220,27 +220,19 @@ def custom_reward(transition):
     return transition
 
 def compute_dist_to_puck(transition):
+
     # Extract observation from the transition
     observation = np.asarray(transition[0])
 
     # Initialize the reward for closeness to puck
-    reward_closeness_to_puck = 0
+    reward_dist_puck = 0
 
     # Check if the agent is in its own half and the puck is behind
-    if (observation[-6] + CENTER_X) < CENTER_X and observation[-4] <= 0:
+    if observation[-4] <= 0 and (observation[-6] + CENTER_X) < CENTER_X:
         # Calculate distance to puck
-        agent_position = observation[:2]
-        puck_position = observation[-6:-4]
-        dist_to_puck = dist_positions(agent_position, puck_position)
-
-        # Define maximum distance and maximum reward for proxy
-        max_dist = 250. / SCALE
-        max_reward = -30.  # Max (negative) reward through this proxy
-
-        # Calculate reward factor based on distance
-        factor = max_reward / (max_dist * 250 / 2)
+        dist_to_puck = dist_positions(observation[:2], observation[-6:-4])
 
         # Add proxy reward for being close to the puck in the agent's own half
-        reward_closeness_to_puck += dist_to_puck * factor
+        reward_dist_puck += dist_to_puck * -0.05
 
-    return reward_closeness_to_puck
+    return reward_dist_puck
